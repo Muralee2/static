@@ -1,4 +1,4 @@
-name: Upload to S3
+name: Upload ZIP to S3
 
 on:
   push:
@@ -9,17 +9,23 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Zip Utility
+        run: sudo apt-get install -y zip
+
+      - name: Create ZIP File
+        run: zip -r deployment.zip . -x "*.git*"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ap-south-1 # Example: ap-south-1
+          aws-region: ap-south-1  # Change to your AWS region
 
-      - name: Upload Files to S3
-        run: |
-            aws s3 sync ./ s3://my-tf-saniakurup-bucket/ 
-      # Replace with your bucket name and path
+      - name: Upload ZIP to S3
+        run: aws s3 cp deployment.zip s3://my-tf-saniakurup-bucket/
